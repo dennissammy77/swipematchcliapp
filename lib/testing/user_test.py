@@ -1,40 +1,62 @@
+import pytest
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
-from conftest import SQLITE_URL
-from models import User
+# from conftest import SQLITE_URL
+from lib.models import User, engine
+from lib.base import Base
 
-class TestUser:
-    '''Class User in models.py'''
-
-    # start session, reset db
-    engine = create_engine(SQLITE_URL)
+@pytest.fixture(scope="module")
+def setup_db():
+    Base.metadata.create_all(engine) # Create tables
+    yield
+    Base.metadata.drop_all(engine) # Drop tables after test
+    
+@pytest.fixture
+def session(setup_db):
     Session = sessionmaker(bind=engine)
     session = Session()
+    
+    # Clean up database table beafore each test
+    session.query(User).delete()
+    session.commit()
+    
+    yield session
+    session.close()
 
-    # add test data
-    john_Doe = Game(
+def test_user_has_correct_attributes(session):
+    john_doe = User(
         name="John Doe",
         email="johndoe@gmail.com",
         mobile=759233322,
         role="applicant"
     )
 
-    session.add(john_Doe)
+    session.add(john_doe)
     session.commit()
+    session.refresh(john_doe)
 
-    def test_user_has_correct_attributes(self):
-        '''has attributes "name", "email", "mobile", "role", .'''
-        assert(
-            all(
-                hasattr(
-                    TestUser.john_Doe, attr
-                ) for attr in [
-                    "id",
-                    "name",
-                    "email",
-                    "mobile",
-                    "role",
-                    "created_at",
-                    "updated_at"
-                ]))
+    for attr in [
+        "id", "name", "email", "mobile", "role", "created_at", "updated_at"
+    ]:
+        assert hasattr(john_doe, attr)
+    
+def test_user_has_correct_values(session):
+    # assert
+    john_doe = User(
+        name="John Doe",
+        email="johndoe@gmail.com",
+        mobile=759233322,
+        role="applicant"
+    )
+
+    session.add(john_doe)
+    session.commit()
+    user = session.query(User).first()
+
+    # Assert
+    assert user.name == "John Doe"
+    assert user.email == "johndoe@gmail.com"
+    assert user.mobile == 759233322
+    assert user.role == "applicant"
+    assert user.id is not None  # Confirm it got an ID from the DB

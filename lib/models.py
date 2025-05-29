@@ -1,7 +1,7 @@
 from sqlalchemy import create_engine
 from sqlalchemy import ForeignKey, Column, Integer, String, func, CheckConstraint, UniqueConstraint, DateTime 
 from sqlalchemy.orm import relationship, backref
-from base import Base
+from lib.base import Base
 
 engine = create_engine('sqlite:///swipe_match_hired.db')
 

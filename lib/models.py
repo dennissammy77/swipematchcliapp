@@ -25,9 +25,22 @@ class User(Base):
             f'name={self.name}, ' + \
             f'email={self.email})'
         
-# # company
-# class Company(Base):
-#     pass
+# company
+class Company(Base):
+    __tablename__ = 'companies'
+
+    id = Column(Integer(), primary_key=True)
+    name = Column(String())
+    industry = Column(String())
+    website = Column(String())
+    created_at = Column(DateTime(), server_default=func.now())
+    updated_at = Column(DateTime(), onupdate=func.now())
+    
+    def __repr__(self):
+        return f'Company(id={self.id}, ' + \
+            f'name={self.name}, '
+    
+    
 # # job
 # class Job(Base):
 #     pass

@@ -2,7 +2,6 @@ import pytest
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
-# from conftest import SQLITE_URL
 from lib.models import User, engine
 from lib.base import Base
 

@@ -6,10 +6,13 @@ import random
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
-from models import User
+from lib.models import User
+from lib.base import Base
 
 if __name__ == '__main__':
     engine = create_engine('sqlite:///swipe_match_hired.db')
+    Base.metadata.create_all(engine)
+    
     Session = sessionmaker(bind=engine)
     session = Session()
 
@@ -31,3 +34,5 @@ if __name__ == '__main__':
         session.commit()
 
         users.append(user)
+        
+    print("🌱 Seeding complete!")   

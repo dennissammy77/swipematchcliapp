@@ -2,6 +2,7 @@ from sqlalchemy import create_engine
 from sqlalchemy import ForeignKey, Column, Integer, String, func, CheckConstraint, UniqueConstraint, DateTime 
 from sqlalchemy.orm import relationship, backref
 from lib.base import Base
+from datetime import datetime
 
 engine = create_engine('sqlite:///swipe_match_hired.db')
 
@@ -19,6 +20,8 @@ class User(Base):
     role = Column(String())
     created_at = Column(DateTime(), server_default=func.now())
     updated_at = Column(DateTime(), onupdate=func.now())
+    
+    applications = relationship("Application", back_populates="user")
     
     def __repr__(self):
         return f'User(id={self.id}, ' + \
@@ -59,17 +62,33 @@ class Job(Base):
     company_id = Column(Integer, ForeignKey('companies.id'))
 
     company = relationship("Company", back_populates="jobs")
+    applications = relationship("Application", back_populates="job")
     
     def __repr__(self):
         return f'Job(id={self.id}, ' + \
             f'name={self.name}, '
 
 # # application
-# class Application(Base):
-#     pass
 
-    """_Relationships_
-        user -> application (1-many)
-        company -> job (1-many)
-        job -> application (1-many)
-    """
+class Application(Base):
+    __tablename__ = 'applications'
+
+    id = Column(Integer, primary_key=True)
+    user_id = Column(String, ForeignKey('users.id'))
+    job_id = Column(String, ForeignKey('jobs.id'))
+    status = Column(String)
+    date = Column(DateTime, default=datetime.utcnow)
+
+    user = relationship("User", back_populates="applications")
+    job = relationship("Job", back_populates="applications")
+    
+    def __repr__(self):
+        return f'Application(id={self.id}, ' + \
+            f'status={self.status}, '
+    
+
+"""_Relationships_
+    user -> application (1-many)
+    company -> job (1-many)
+    job -> application (1-many)
+"""

@@ -6,7 +6,7 @@ import random
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
-from lib.models import User, Company, Job
+from lib.models import User, Company, Job, Application
 from lib.base import Base
 
 if __name__ == '__main__':
@@ -18,6 +18,8 @@ if __name__ == '__main__':
 
     session.query(User).delete()
     session.query(Company).delete()
+    session.query(Job).delete()
+    session.query(Application).delete()
     fake = Faker()
     
     roles = ['applicant', 'company','recruiter']
@@ -61,5 +63,26 @@ if __name__ == '__main__':
         session.add(job)
         session.commit()
         jobs.append(job)
+        
+    
+    users = session.query(User).all()
+    jobs = session.query(Job).all()
+    statuses = ['applied', 'interviewing', 'rejected', 'hired']
+
+    applications = []
+    for _ in range(20):  # Generate 20 applications
+        user = random.choice(users)
+        job = random.choice(jobs)
+
+        application = Application(
+            user_id=user.id,
+            job_id=job.id,
+            status=random.choice(statuses),
+            date=fake.date_time_between(start_date='-30d', end_date='now')
+        )
+        applications.append(application)
+
+    session.bulk_save_objects(applications)
+    session.commit()
         
     print("🌱 Seeding complete!")   

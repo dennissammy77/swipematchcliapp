@@ -36,14 +36,34 @@ class Company(Base):
     created_at = Column(DateTime(), server_default=func.now())
     updated_at = Column(DateTime(), onupdate=func.now())
     
+    jobs = relationship('Job', back_populates='company')
+    
     def __repr__(self):
         return f'Company(id={self.id}, ' + \
             f'name={self.name}, '
     
     
 # # job
-# class Job(Base):
-#     pass
+class Job(Base):
+    __tablename__ = 'jobs'
+
+    id = Column(Integer, primary_key=True)
+    name = Column(String)
+    location = Column(String)
+    description = Column(String)
+    salary = Column(Integer)
+    type = Column(String)
+    created_at = Column(DateTime(), server_default=func.now())
+    updated_at = Column(DateTime(), onupdate=func.now())
+    
+    company_id = Column(Integer, ForeignKey('companies.id'))
+
+    company = relationship("Company", back_populates="jobs")
+    
+    def __repr__(self):
+        return f'Job(id={self.id}, ' + \
+            f'name={self.name}, '
+
 # # application
 # class Application(Base):
 #     pass

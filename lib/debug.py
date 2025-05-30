@@ -4,7 +4,7 @@ import random
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
-from lib.models import User, Company
+from lib.models import User, Company, Job
 from lib.base import Base
 
 fake = Faker()
@@ -23,5 +23,9 @@ if __name__ == '__main__':
     print("\n companies:")
     for company in session.query(Company).all():
         print(company)
+        
+    print("\n jobs:")
+    for job in session.query(Job).all():
+        print(job)
 
     # import ipdb; ipdb.set_trace()

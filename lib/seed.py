@@ -6,7 +6,7 @@ import random
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
-from lib.models import User, Company
+from lib.models import User, Company, Job
 from lib.base import Base
 
 if __name__ == '__main__':
@@ -50,5 +50,16 @@ if __name__ == '__main__':
         session.commit()
 
         companies.append(company)
+
+    jobs = []
+    for _ in range(20):
+        job = Job(
+            name=fake.job(),
+            salary=random.randint(50000, 200000),
+            company=random.choice(companies)
+        )
+        session.add(job)
+        session.commit()
+        jobs.append(job)
         
     print("🌱 Seeding complete!")   

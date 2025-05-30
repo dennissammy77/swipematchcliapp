@@ -6,7 +6,7 @@ import random
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
-from lib.models import User
+from lib.models import User, Company
 from lib.base import Base
 
 if __name__ == '__main__':
@@ -17,6 +17,7 @@ if __name__ == '__main__':
     session = Session()
 
     session.query(User).delete()
+    session.query(Company).delete()
     fake = Faker()
     
     roles = ['applicant', 'company','recruiter']
@@ -34,5 +35,20 @@ if __name__ == '__main__':
         session.commit()
 
         users.append(user)
+
+    industries = ['Technology', 'Finance','DevOps', 'CyberSecurity']
+    companies = []
+    for i in range(10):
+        company = Company(
+            name=fake.unique.name(),
+            industry=random.choice(industries),
+            website=fake.url(),
+        )
+
+        # add and commit individually to get IDs back
+        session.add(company)
+        session.commit()
+
+        companies.append(company)
         
     print("🌱 Seeding complete!")   

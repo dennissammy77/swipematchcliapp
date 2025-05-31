@@ -165,6 +165,8 @@ def list_users():
 
     console.print(table)
     
+
+
 @cli.command()
 @click.option('--name', prompt='Company name')
 @click.option('--industry', prompt='Industry')
@@ -273,6 +275,7 @@ def delete_company(company_id):
     except Exception as e:
         session.rollback()
         console.print(f"[red]Error deleting company: {e}[/red]")
+
 
 
 @cli.command()
@@ -409,17 +412,52 @@ def fetch_job(job_id):
     
     console.print(table)
 
+
+
 @cli.command()
 @click.option('--user_id', prompt='User ID', type=int)
 @click.option('--job_id', prompt='Job ID', type=int)
 @click.option('--status', prompt='Application status')
 def create_application(user_id, job_id, status):
     """📨 Create a job application"""
-    app = Application(user_id=user_id, job_id=job_id, status=status, date=datetime.utcnow())
-    session.add(app)
-    session.commit()
-    console.print(f"✅ [green]Application submitted by User {user_id} for Job {job_id}[/]")
+    try:
+        app = Application(user_id=user_id, job_id=job_id, status=status, date=datetime.utcnow())
+        session.add(app)
+        session.commit()
+        console.print(f"✅ [green]Application submitted by User {user_id} for Job {job_id}[/]")
+    except ValueError as ve:
+        session.rollback()
+        console.print(f"[bold red]Error:[/] {ve}")
+    except Exception as e:
+        session.rollback()
+        console.print(f"[bold red]Unexpected error:[/] {e}")
 
+@cli.command()
+@click.option('--application_id', prompt='Application ID')
+def fetch_application(application_id):
+    """🔍 Fetch a specific application"""
+    app = session.query(Application).filter_by(id=application_id).first()
+
+    if not app:
+        console.print(f"[red]Application with ID {application_id} not found.[/red]")
+        return
+
+    job = app.job
+    user = app.user
+    
+    table = Table(title=f"Application Details (ID: {user.id})")
+    table.add_column("Field")
+    table.add_column("Value")
+
+    table.add_row("User Id", str(user.id))
+    table.add_row("User Name", user.name)
+    table.add_row("Job Id", str(job.id))
+    table.add_row("Job Name", job.name)
+    table.add_row("Status", app.status)
+    table.add_row("Date", app.date.strftime('%Y-%m-%d'))
+    
+    console.print(table)
+    
 @cli.command()
 def list_applications():
     """📄 List all applications"""
@@ -427,20 +465,67 @@ def list_applications():
     table = Table(title="Applications")
     table.add_column("ID", justify="right")
     table.add_column("User ID")
+    table.add_column("User Name")
     table.add_column("Job ID")
+    table.add_column("Job Name")
     table.add_column("Status")
     table.add_column("Date")
 
     for a in apps:
+        user = a.user
+        job = a.job
         table.add_row(
             str(a.id),
             str(a.user_id),
+            user.name,
             str(a.job_id),
+            job.name,
             a.status,
             a.date.strftime("%Y-%m-%d")
         )
 
     console.print(table)
+
+@cli.command()
+@click.option('--application_id', prompt='Application ID', type=int)
+def update_application(application_id):
+    """✏️ Update an application"""
+    app = session.query(Application).filter_by(id=application_id).first()
+
+    if not app:
+        console.print(f"[red]Application with ID {application_id} not found.[/red]")
+        return
+
+    console.print(f"[cyan]Updating Application #{application_id}[/cyan]")
+
+    try:
+        new_status = click.prompt("New status", default=app.status, show_default=True)
+        app.status = new_status  # Triggers @property validation
+        session.commit()
+        console.print(f"[green]Application #{application_id} updated successfully.[/green]")
+    except Exception as e:
+        session.rollback()
+        console.print(f"[red]Error updating application: {e}[/red]")
+
+
+@cli.command()
+@click.option('--application_id', prompt='Application ID', type=int)
+def delete_application(application_id):
+    """❌ Delete an application"""
+    app = session.query(Application).filter_by(id=application_id).first()
+
+    if not app:
+        console.print(f"[red]Application with ID {application_id} not found.[/red]")
+        return
+
+    confirm = click.confirm(f"Are you sure you want to delete application #{application_id}?", default=False)
+
+    if confirm:
+        session.delete(app)
+        session.commit()
+        console.print(f"[green]Application #{application_id} deleted successfully.[/green]")
+    else:
+        console.print("[yellow]Deletion cancelled.[/yellow]")
 
 if __name__ == '__main__':
     cli.add_command(create_user)
@@ -464,6 +549,9 @@ if __name__ == '__main__':
         
     cli.add_command(create_application)
     cli.add_command(list_applications)
+    cli.add_command(fetch_application)
+    cli.add_command(update_application)
+    cli.add_command(delete_application)
     
     cli()
     

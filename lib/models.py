@@ -204,9 +204,9 @@ class Application(Base):
     __tablename__ = 'applications'
 
     id = Column(Integer, primary_key=True)
-    user_id = Column(String, ForeignKey('users.id'))
-    job_id = Column(String, ForeignKey('jobs.id'))
-    status = Column(String)
+    _user_id = Column("user_id", Integer, ForeignKey('users.id'))
+    _job_id = Column("job_id", Integer, ForeignKey('jobs.id'))
+    _status = Column("status", String)
     date = Column(DateTime, default=datetime.utcnow)
 
     user = relationship("User", back_populates="applications")
@@ -215,6 +215,39 @@ class Application(Base):
     def __repr__(self):
         return f'Application(id={self.id}, ' + \
             f'status={self.status}, '
+            
+    @property
+    def user_id(self):
+        return self._user_id
+
+    @user_id.setter
+    def user_id(self, value):
+        if not value or not str(value).isdigit():
+            raise ValueError("user_id must be a valid numeric ID.")
+        self._user_id = int(value)
+
+    # job_id property
+    @property
+    def job_id(self):
+        return self._job_id
+
+    @job_id.setter
+    def job_id(self, value):
+        if not value or not str(value).isdigit():
+            raise ValueError("job_id must be a valid numeric ID.")
+        self._job_id = int(value)
+
+    # status property
+    @property
+    def status(self):
+        return self._status
+
+    @status.setter
+    def status(self, value):
+        allowed = ['applied', 'interviewing', 'rejected', 'offered', 'accepted']
+        if not value or value.lower() not in allowed:
+            raise ValueError(f"Status must be one of: {', '.join(allowed)}")
+        self._status = value.lower()
     
 
 """_Relationships_

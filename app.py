@@ -68,7 +68,7 @@ def update_user(user_id):
         console.print(f"[red]Error updating user: {e}[/red]")
         
 @click.command()
-@click.option('--user-id', prompt="User ID to fetch details")
+@click.option('--user-id', prompt="User ID to Fetch and display details")
 def fetch_user(user_id):
     """👤 Fetch and display user details"""
     user = session.query(User).filter_by(id=user_id).first()
@@ -170,11 +170,18 @@ def list_users():
 @click.option('--industry', prompt='Industry')
 @click.option('--website', prompt='Website')
 def create_company(name, industry, website):
-    """🏢 Create a company"""
-    company = Company(name=name, industry=industry, website=website)
-    session.add(company)
-    session.commit()
-    console.print(f"✅ [green]Company '{name}' created with ID: {company.id}[/]")
+    try:
+        """🏢 Create a company"""
+        company = Company(name=name, industry=industry, website=website)
+        session.add(company)
+        session.commit()
+        console.print(f"✅ [green]Company '{name}' created with ID: {company.id}[/]")
+    except ValueError as ve:
+        session.rollback()
+        console.print(f"[bold red]Error:[/] {ve}")
+    except Exception as e:
+        session.rollback()
+        console.print(f"[bold red]Unexpected error:[/] {e}")
 
 @cli.command()
 def list_companies():
@@ -190,6 +197,83 @@ def list_companies():
         table.add_row(str(c.id), c.name, c.industry, c.website)
 
     console.print(table)
+
+@cli.command()
+@click.option('--company-id', prompt="Company ID to fetch details")
+def fetch_company(company_id):
+    """🏭 Fetch and display company details"""
+    company = session.query(Company).filter_by(id=company_id).first()
+
+    if not company:
+        console.print(f"[red]❌ Company with ID {company_id} not found.[/red]")
+        return
+
+    table = Table(title=f"Company Details (ID: {company.id})")
+    table.add_column("Field")
+    table.add_column("Value")
+    
+    #  table row details
+    table.add_row("Name", company.name)
+    table.add_row("Industry", company.industry)
+    table.add_row("Website", company.website)
+    
+    console.print(table)
+
+@cli.command()
+@click.option('--company-id', prompt="Company ID to update")
+def update_company(company_id):
+    """✏️ Update company details"""
+    company = session.query(Company).filter_by(id=company_id).first()
+
+    if not company:
+        console.print(f"[red]❌ Company with ID {company_id} not found.[/red]")
+        return
+
+    console.print(f"[cyan]Updating Company: {company.name} ({company.website})[/cyan]")
+
+    try:
+        new_name = click.prompt("New name", default=company.name, show_default=True)
+        new_industry = click.prompt("New industry", default=company.industry, show_default=True)
+        new_website = click.prompt("New website", default=company.website, show_default=True)
+
+        # Update with validation
+        company.name = new_name
+        company.industry = new_industry
+        company.website = new_website
+
+        session.commit()
+        console.print(f"[green]✅ Company '{company.name}' updated successfully.[/green]")
+
+    except ValueError as ve:
+        session.rollback()
+        console.print(f"[bold red]Validation error:[/] {ve}")
+    except Exception as e:
+        session.rollback()
+        console.print(f"[bold red]Unexpected error:[/] {e}")
+
+@cli.command()
+@click.option('--company-id', prompt="Company ID to update")
+def delete_company(company_id):
+    """❌ Delete a company"""
+    company = session.query(Company).filter_by(id=company_id).first()
+
+    if not company:
+        console.print(f"[red]❌ Company with ID {company_id} not found.[/red]")
+        return
+
+    confirm = click.confirm(f"Are you sure you want to delete company '{company.name}' (ID: {company_id})?", default=False)
+    if not confirm:
+        console.print("[yellow]Deletion cancelled.[/yellow]")
+        return
+
+    try:
+        session.delete(company)
+        session.commit()
+        console.print(f"[green]Company '{company.name}' deleted successfully.[/green]")
+    except Exception as e:
+        session.rollback()
+        console.print(f"[red]Error deleting company: {e}[/red]")
+
 
 @cli.command()
 @click.option('--title', prompt='Job title')
@@ -347,8 +431,12 @@ if __name__ == '__main__':
     cli.add_command(delete_job)
     
     cli.add_command(create_company)
-    cli.add_command(create_application)
     cli.add_command(list_companies)
+    cli.add_command(fetch_company)
+    cli.add_command(update_company)
+    cli.add_command(delete_company)
+        
+    cli.add_command(create_application)
     cli.add_command(list_applications)
     
     cli()

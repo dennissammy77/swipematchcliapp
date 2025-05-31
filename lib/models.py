@@ -88,6 +88,41 @@ class Company(Base):
     def __repr__(self):
         return f'Company(id={self.id}, ' + \
             f'name={self.name}, '
+            
+    # Name validation
+    @property
+    def name(self):
+        return self._name
+
+    @name.setter
+    def name(self, value):
+        if not value or not value.strip():
+            raise ValueError("Company name cannot be empty.")
+        self._name = value.strip()
+
+    # Industry validation
+    @property
+    def industry(self):
+        return self._industry
+
+    @industry.setter
+    def industry(self, value):
+        if not value or not value.strip():
+            raise ValueError("Industry cannot be empty.")
+        self._industry = value.strip()
+
+    # Website validation
+    @property
+    def website(self):
+        return self._website
+
+    @website.setter
+    def website(self, value):
+        if not value or not value.strip():
+            raise ValueError("Website cannot be empty.")
+        if not value.startswith("http://") and not value.startswith("https://"):
+            raise ValueError("Website must start with http:// or https://")
+        self._website = value.strip()
       
 # # job
 class Job(Base):

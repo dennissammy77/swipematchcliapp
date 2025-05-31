@@ -385,6 +385,31 @@ def list_jobs():
     console.print(table)
 
 @cli.command()
+@click.option('--job-id', prompt='Job ID to fetch and Display details')
+def fetch_job(job_id):
+    """🏭 Fetch and display company details"""
+    job = session.query(Job).filter_by(id=job_id).first()
+
+    if not job:
+        console.print(f"[red]Job with ID {job_id} not found.[/red]")
+        return
+
+    table = Table(title=f"Job Details (ID: {job.id})")
+    table.add_column("Field")
+    table.add_column("Value")
+    
+    #  table row details
+    table.add_row("Title", job.name)
+    table.add_row("Description", job.description if job.description else "N/A")
+    table.add_row("Location", job.location if job.location else "N/A")
+    table.add_row("Salary", f"${job.salary:,.2f}")
+    table.add_row("Contract Type", job.type if job.type else "N/A")
+    table.add_row("Company ID", str(job.company.id))
+    table.add_row("Company Name", job.company.name if job.company else "N/A")
+    
+    console.print(table)
+
+@cli.command()
 @click.option('--user_id', prompt='User ID', type=int)
 @click.option('--job_id', prompt='Job ID', type=int)
 @click.option('--status', prompt='Application status')
@@ -427,6 +452,7 @@ if __name__ == '__main__':
     
     cli.add_command(create_job)
     cli.add_command(list_jobs)
+    cli.add_command(fetch_job)
     cli.add_command(update_job)
     cli.add_command(delete_job)
     

@@ -77,9 +77,9 @@ class Company(Base):
     __tablename__ = 'companies'
 
     id = Column(Integer(), primary_key=True)
-    name = Column(String())
-    industry = Column(String())
-    website = Column(String())
+    _name = Column("name", String())
+    _industry = Column("industry", String())
+    _website = Column("website", String())
     created_at = Column(DateTime(), server_default=func.now())
     updated_at = Column(DateTime(), onupdate=func.now())
     
@@ -88,18 +88,17 @@ class Company(Base):
     def __repr__(self):
         return f'Company(id={self.id}, ' + \
             f'name={self.name}, '
-    
-    
+      
 # # job
 class Job(Base):
     __tablename__ = 'jobs'
 
     id = Column(Integer, primary_key=True)
-    name = Column(String)
-    location = Column(String)
-    description = Column(String)
-    salary = Column(Integer)
-    type = Column(String)
+    _name = Column("name", String)
+    _location = Column("location", String)
+    _description = Column("description", String)
+    _salary = Column("salary",Integer)
+    _type = Column("type", String)
     created_at = Column(DateTime(), server_default=func.now())
     updated_at = Column(DateTime(), onupdate=func.now())
     
@@ -111,6 +110,58 @@ class Job(Base):
     def __repr__(self):
         return f'Job(id={self.id}, ' + \
             f'name={self.name}, '
+    
+    @property
+    def name(self):
+        return self._name
+
+    @name.setter
+    def name(self, value):
+        if not value or not value.strip():
+            raise ValueError("Job name cannot be empty.")
+        self._name = value.strip()
+
+    @property
+    def location(self):
+        return self._location
+
+    @location.setter
+    def location(self, value):
+        if not value or not value.strip():
+            raise ValueError("Job location cannot be empty.")
+        self._location = value.strip()
+
+    @property
+    def description(self):
+        return self._description
+
+    @description.setter
+    def description(self, value):
+        if not value or not value.strip():
+            raise ValueError("Job description cannot be empty.")
+        self._description = value.strip()
+
+    @property
+    def type(self):
+        return self._type
+
+    @type.setter
+    def type(self, value):
+        allowed_types = ['full-time', 'part-time', 'contract', 'internship']
+        value = value.strip().lower()
+        if value not in allowed_types:
+            raise ValueError(f"Job type must be one of: {', '.join(allowed_types)}.")
+        self._type = value
+
+    @property
+    def salary(self):
+        return self._salary
+
+    @salary.setter
+    def salary(self, value):
+        if not isinstance(value, (int, float)) or value < 0:
+            raise ValueError("Salary must be a positive number.")
+        self._salary = value
 
 # # application
 

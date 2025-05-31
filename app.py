@@ -193,14 +193,83 @@ def list_companies():
 
 @cli.command()
 @click.option('--title', prompt='Job title')
+@click.option('--description', prompt='Job description')
+@click.option('--Location', prompt='Job Location')
 @click.option('--salary', prompt='Salary', type=float)
+@click.option('--type', prompt='Contract type (full-time | part-time | contract | internship)')
 @click.option('--company_id', prompt='Company ID', type=int)
-def create_job(title, salary, company_id):
+def create_job(title, description, location, salary, type, company_id):
     """💼 Create a job listing"""
-    job = Job(title=title, salary=salary, company_id=company_id)
-    session.add(job)
-    session.commit()
-    console.print(f"✅ [green]Job '{title}' created with ID: {job.id}[/]")
+    try:
+        job = Job(name=title, description=description, location=location, salary=salary, type=type, company_id=company_id)
+        session.add(job)
+        session.commit()
+        console.print(f"✅ [green]Job '{title}' created with ID: {job.id}[/]")
+    except ValueError as ve:
+        session.rollback()
+        console.print(f"[bold red]Error:[/] {ve}")
+    except Exception as e:
+        session.rollback()
+        console.print(f"[bold red]Unexpected error:[/] {e}")
+
+@cli.command()
+@click.option('--job-id', prompt='Job ID to update', type=int)
+def update_job(job_id):
+    """✏️ Update a job listing"""
+    job = session.query(Job).filter_by(id=job_id).first()
+
+    if not job:
+        console.print(f"[red]Job with ID {job_id} not found.[/red]")
+        return
+
+    console.print(f"[cyan]Updating job: {job.name} (ID: {job.id})[/cyan]")
+
+    try:
+        new_name = click.prompt("New title", default=job.name, show_default=True)
+        new_description = click.prompt("New description", default=job.description, show_default=True)
+        new_location = click.prompt("New location", default=job.location, show_default=True)
+        new_salary = click.prompt("New salary", default=job.salary, type=float, show_default=True)
+        new_type = click.prompt("New type (full-time | part-time | contract | internship)", default=job.type, show_default=True)
+
+        # Update fields with validation
+        job.name = new_name
+        job.description = new_description
+        job.location = new_location
+        job.salary = new_salary
+        job.type = new_type.lower()
+
+        session.commit()
+        console.print(f"[green]Job '{job.name}' updated successfully.[/green]")
+
+    except ValueError as ve:
+        session.rollback()
+        console.print(f"[bold red]Validation Error:[/] {ve}")
+    except Exception as e:
+        session.rollback()
+        console.print(f"[bold red]Unexpected Error:[/] {e}")
+
+@cli.command()
+@click.option('--job-id', prompt='Job ID to delete', type=int)
+def delete_job(job_id):
+    """❌ Delete a job"""
+    job = session.query(Job).filter_by(id=job_id).first()
+
+    if not job:
+        console.print(f"[red]Job with ID {job_id} not found.[/red]")
+        return
+
+    confirm = click.confirm(f"Are you sure you want to delete job '{job.name}' (ID: {job_id})?", default=False)
+    if not confirm:
+        console.print("[yellow]Deletion cancelled.[/yellow]")
+        return
+
+    try:
+        session.delete(job)
+        session.commit()
+        console.print(f"[green]User '{job.name}' deleted successfully.[/green]")
+    except Exception as e:
+        session.rollback()
+        console.print(f"[red]Error deleting user: {e}[/red]")
 
 @cli.command()
 def list_jobs():
@@ -209,11 +278,25 @@ def list_jobs():
     table = Table(title="Jobs")
     table.add_column("ID", justify="right")
     table.add_column("Title")
+    table.add_column("Description")
+    table.add_column("Location")
     table.add_column("Salary")
+    table.add_column("Contract Type")
     table.add_column("Company ID")
+    table.add_column("Company Name")
 
     for job in jobs:
-        table.add_row(str(job.id), job.name, f"${job.salary:,.2f}", str(job.company_id))
+        company = job.company
+        table.add_row(
+            str(job.id), 
+            job.name, 
+            job.description if job.description else "N/A", 
+            job.location if job.location else "N/A", 
+            f"${job.salary:,.2f}", 
+            job.type if job.type else "N/A", 
+            str(job.company_id),
+            company.name if company else "N/A",
+        )
 
     console.print(table)
 
@@ -252,17 +335,21 @@ def list_applications():
 
 if __name__ == '__main__':
     cli.add_command(create_user)
-    cli.add_command(create_company)
-    cli.add_command(create_job)
-    cli.add_command(create_application)
     cli.add_command(list_users)
-    cli.add_command(list_companies)
-    cli.add_command(list_jobs)
-    cli.add_command(list_applications)
     cli.add_command(update_user)
     cli.add_command(fetch_user)
     cli.add_command(delete_user)
     cli.add_command(list_user_applications)
+    
+    cli.add_command(create_job)
+    cli.add_command(list_jobs)
+    cli.add_command(update_job)
+    cli.add_command(delete_job)
+    
+    cli.add_command(create_company)
+    cli.add_command(create_application)
+    cli.add_command(list_companies)
+    cli.add_command(list_applications)
     
     cli()
     

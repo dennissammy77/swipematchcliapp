@@ -3,6 +3,7 @@ from sqlalchemy import ForeignKey, Column, Integer, String, func, CheckConstrain
 from sqlalchemy.orm import relationship, backref
 from lib.base import Base
 from datetime import datetime
+import re
 
 engine = create_engine('sqlite:///swipe_match_hired.db')
 
@@ -13,11 +14,11 @@ class User(Base):
         UniqueConstraint('email',name='unique_email'),
     )
     
-    id = Column(Integer(),primary_key=True)
-    name = Column(String())
-    email = Column(String())
-    mobile = Column(Integer())
-    role = Column(String())
+    id = Column(Integer, primary_key=True)
+    _name = Column("name", String)
+    _email = Column("email", String)
+    _mobile = Column("mobile", Integer)
+    _role = Column("role", String)
     created_at = Column(DateTime(), server_default=func.now())
     updated_at = Column(DateTime(), onupdate=func.now())
     
@@ -27,6 +28,49 @@ class User(Base):
         return f'User(id={self.id}, ' + \
             f'name={self.name}, ' + \
             f'email={self.email})'
+            
+    @property
+    def name(self):
+        return self._name
+
+    @name.setter
+    def name(self, value):
+        if not value or not value.strip():
+            raise ValueError("Name cannot be empty.")
+        self._name = value.strip()
+
+    @property
+    def email(self):
+        return self._email
+
+    @email.setter
+    def email(self, value):
+        if not value or not isinstance(value, str):
+            raise ValueError("Email must be a non-empty string.")
+        email_regex = r'^\S+@\S+\.\S+$'
+        if not re.match(email_regex, value):
+            raise ValueError("Invalid email format.")
+        self._email = value
+
+    @property
+    def mobile(self):
+        return self._mobile
+
+    @mobile.setter
+    def mobile(self, value):
+        if not str(value).isdigit() or len(str(value)) < 10:
+            raise ValueError("Mobile must be a valid number with at least 10 digits. Use format 759233322")
+        self._mobile = int(value)
+
+    @property
+    def role(self):
+        return self._role
+
+    @role.setter
+    def role(self, value):
+        if value not in ['applicant', 'employer']:
+            raise ValueError("Role must be either 'applicant' or 'employer'.")
+        self._role = value
         
 # company
 class Company(Base):

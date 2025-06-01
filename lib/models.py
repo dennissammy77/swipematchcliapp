@@ -58,7 +58,9 @@ class User(Base):
 
     @mobile.setter
     def mobile(self, value):
-        if not str(value).isdigit() or len(str(value)) < 10:
+        if not isinstance(int(value),int):
+            raise ValueError("Mobile must be a valid number. Use format 759233322")
+        if len(value) < 9:
             raise ValueError("Mobile must be a valid number with at least 10 digits. Use format 759233322")
         self._mobile = int(value)
 
@@ -207,7 +209,7 @@ class Application(Base):
     _user_id = Column("user_id", Integer, ForeignKey('users.id'))
     _job_id = Column("job_id", Integer, ForeignKey('jobs.id'))
     _status = Column("status", String)
-    date = Column(DateTime, default=datetime.utcnow)
+    date = Column(DateTime(), server_default=func.now())
 
     user = relationship("User", back_populates="applications")
     job = relationship("Job", back_populates="applications")

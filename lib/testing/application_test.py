@@ -86,3 +86,129 @@ def test_application_relationships(session):
     loaded_app = session.query(Application).first()
     assert loaded_app.user.name == "Alice"
     assert loaded_app.job.name == "Software Engineer"
+
+def test_company_has_correct_attr(session):
+    google = Company(
+        name="Google",
+        industry="Technology",
+        website="https://google.com"
+    )
+    
+    session.add(google)
+    session.commit()
+    
+    session.refresh(google)
+    
+    for attr in [
+        "id", "name", "industry", "website"
+    ]:
+        assert hasattr(google, attr)
+        
+def test_company_has_correct_values(session):
+    google = Company(
+        name="Google",
+        industry="Technology",
+        website="https://google.com"
+    )
+    
+    session.add(google)
+    session.commit()
+    
+    session.refresh(google)
+    # Assert
+    assert google.name == "Google"
+    assert google.industry == "Technology"
+    assert google.website == "https://google.com"
+    assert google.id is not None  # Confirm it got an ID from the DB
+    
+def test_job_has_correct_attrs(session):
+    company = Company(name="Google", industry="Tech", website="https://google.com")
+    session.add(company)
+    session.commit()
+    session.refresh(company)
+
+    job = Job(
+        name="Software Engineer",
+        location="Nairobi, Kenya",
+        description="Senior engineer solving real-world problems",
+        salary=200000,
+        type="contract",
+        company_id=company.id
+    )
+
+    session.add(job)
+    session.commit()
+    session.refresh(job)
+
+    for attr in [
+        "id", "name", "location", "description", "salary", "type", "company_id"
+    ]:
+        assert hasattr(job, attr)
+
+
+def test_job_has_correct_values(session):
+    company = Company(name="Google", industry="Tech", website="https://google.com")
+    session.add(company)
+    session.commit()
+    session.refresh(company)
+
+    job = Job(
+        name="Backend Developer",
+        location="Remote",
+        description="Build backend systems",
+        salary=180000,
+        type="full-time",
+        company_id=company.id
+    )
+
+    session.add(job)
+    session.commit()
+    session.refresh(job)
+
+    assert job.name == "Backend Developer"
+    assert job.location == "Remote"
+    assert job.description == "Build backend systems"
+    assert job.salary == 180000
+    assert job.type == "full-time"
+    assert job.company_id == company.id
+    
+def test_user_has_correct_attributes(session):
+    john_doe = User(
+        name="John Doe",
+        email="johndoe@gmail.com",
+        mobile=759233322,
+        role="applicant"
+    )
+
+    session.add(john_doe)
+    session.commit()
+    session.refresh(john_doe)
+
+    for attr in [
+        "id", "name", "email", "mobile", "role", "created_at", "updated_at"
+    ]:
+        assert hasattr(john_doe, attr)
+    
+def test_user_has_correct_values(session):
+    # assert
+    john_doe = User(
+        name="John Doe",
+        email="johndoe@gmail.com",
+        mobile="759233322",
+        role="applicant"
+    )
+
+    session.add(john_doe)
+    session.commit()
+    session.flush()
+    print('users',session.query(User).all())
+    user = session.query(User).filter_by(
+        id = john_doe.id
+    ).first()
+    print(user)
+    # Assert
+    assert user.name == john_doe.name
+    assert user.email == john_doe.email
+    assert user.mobile == john_doe.mobile
+    assert user.role == john_doe.role
+    assert user.id is not None  # Confirm it got an ID from the DB

@@ -4,6 +4,7 @@ from rich.console import Console
 from rich.table import Table
 from sqlalchemy.orm import sessionmaker
 from datetime import datetime
+import sqlalchemy as sa
 
 from lib.models import User, Company, Job, Application, engine
 
@@ -88,43 +89,48 @@ def fetch_user(user_id):
 
     console.print(table)
 
-@cli.command()
-@click.option('--user-id', prompt='User ID', type=int)
-def list_user_applications(user_id):
-    """📨 List all applications for a specific user"""
-    user = session.query(User).filter_by(id=user_id).first()
+# @cli.command()
+# @click.option('--user-id', prompt='User ID')
+# def list_user_applications(user_id):
+#     """📨 List all applications for a specific user"""
+#     user = session.query(User).filter_by(id=user_id).first()
 
-    if not user:
-        console.print(f"[red]User with ID {user_id} not found.[/red]")
-        return
+#     if not user:
+#         console.print(f"[red]User with ID {user_id} not found.[/red]")
+#         return
+    
+#     print(user)
 
-    apps = session.query(Application).filter_by(user_id=user_id).all()
+#     apps = session.query(Application).filter_by(job_id=int(15)).all()
+#     print(apps)
+#     # apps = [app for app in apps if app.job_id == 15]
+#     # print(apps)
 
-    if not apps:
-        console.print(f"[yellow]No applications found for user '{user.name}' (ID: {user_id})[/yellow]")
-        return
+#     if not apps:
+#         console.print(f"[yellow]No applications found for user '{user.name}' (ID: {user_id})[/yellow]")
+#         return
 
-    table = Table(title=f"Applications for {user.name}")
-    table.add_column("Application ID", justify="right")
-    table.add_column("Job Title")
-    table.add_column("Company")
-    table.add_column("Salary")
-    table.add_column("Status")
-    table.add_column("Date")
+#     table = Table(title=f"Applications for {user.name}")
+#     table.add_column("Application ID", justify="right")
+#     table.add_column("Job Title")
+#     table.add_column("Company")
+#     table.add_column("Salary")
+#     table.add_column("Status")
+#     table.add_column("Date")
 
-    for app in apps:
-        job = app.job
-        company = job.company if job and job.company else None
-        table.add_row(
-            str(app.id),
-            job.name if job else "N/A",
-            company.name if company else "N/A",
-            f"${job.salary:,.2f}" if job and job.salary else "N/A",
-            app.status,
-            app.date.strftime("%Y-%m-%d")
-        )
+#     for app in apps:
+#         job = app.job
+#         company = job.company if job and job.company else None
+#         table.add_row(
+#             str(app.id),
+#             job.name if job else "N/A",
+#             company.name if company else "N/A",
+#             f"${job.salary:,.2f}" if job and job.salary else "N/A",
+#             app.status,
+#             app.date.strftime("%Y-%m-%d")
+#         )
 
-    console.print(table)
+#     console.print(table)
      
 @cli.command()
 @click.option('--user-id', prompt='User ID to delete', type=int)
@@ -415,13 +421,14 @@ def fetch_job(job_id):
 
 
 @cli.command()
-@click.option('--user_id', prompt='User ID', type=int)
-@click.option('--job_id', prompt='Job ID', type=int)
+@click.option('--user_id', prompt='User ID')
+@click.option('--job_id', prompt='Job ID')
 @click.option('--status', prompt='Application status')
 def create_application(user_id, job_id, status):
     """📨 Create a job application"""
     try:
-        app = Application(user_id=user_id, job_id=job_id, status=status, date=datetime.utcnow())
+        print(user_id, job_id, status)
+        app = Application(user_id=int(user_id), job_id=int(job_id), status=status)
         session.add(app)
         session.commit()
         console.print(f"✅ [green]Application submitted by User {user_id} for Job {job_id}[/]")
@@ -470,8 +477,12 @@ def list_applications():
     table.add_column("Job Name")
     table.add_column("Status")
     table.add_column("Date")
+    
 
     for a in apps:
+        print(a.id)
+        print(a.job)
+        print(a.user)
         user = a.user
         job = a.job
         table.add_row(
@@ -533,7 +544,7 @@ if __name__ == '__main__':
     cli.add_command(update_user)
     cli.add_command(fetch_user)
     cli.add_command(delete_user)
-    cli.add_command(list_user_applications)
+    # cli.add_command(list_user_applications)
     
     cli.add_command(create_job)
     cli.add_command(list_jobs)

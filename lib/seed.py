@@ -27,7 +27,7 @@ if __name__ == '__main__':
     
     roles = ['applicant', 'employer']
     users = []
-    for i in range(10):
+    for i in range(20):
         user = User(
             name=fake.unique.name(),
             email=fake.unique.email(),
@@ -43,7 +43,7 @@ if __name__ == '__main__':
 
     industries = ['Technology', 'Finance','DevOps', 'CyberSecurity']
     companies = []
-    for i in range(10):
+    for i in range(20):
         company = Company(
             name=fake.unique.name(),
             industry=random.choice(industries),
@@ -78,10 +78,9 @@ if __name__ == '__main__':
         job = random.choice(jobs)
 
         application = Application(
-            user_id=user.id,
-            job_id=job.id,
+            user_id=random.randint(1, 20),
+            job_id=random.randint(1, 20),
             status=random.choice(statuses),
-            date=fake.date_time_between(start_date='-30d', end_date='now')
         )
         applications.append(application)
 

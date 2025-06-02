@@ -3,15 +3,17 @@ from faker import Faker
 import random
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
+import sys
+import os
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from lib.models import User, Company, Job, Application
+from lib.models import User, Company, Job, Application, engine
 from lib.base import Base
 
+Session = sessionmaker(bind=engine)
 fake = Faker()
 
 if __name__ == '__main__':
-    engine = create_engine('sqlite:///swipe_match_hired.db')
-    Session = sessionmaker(bind=engine)
     session = Session()
     
     # Fetch and print all users

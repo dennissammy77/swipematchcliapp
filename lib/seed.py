@@ -25,13 +25,13 @@ if __name__ == '__main__':
     session.query(Application).delete()
     fake = Faker()
     
-    roles = ['applicant', 'company','recruiter']
+    roles = ['applicant', 'employer']
     users = []
     for i in range(10):
         user = User(
             name=fake.unique.name(),
             email=fake.unique.email(),
-            mobile=fake.random_number(digits=9),
+            mobile=123456789,
             role=random.choice(roles)
         )
 
@@ -70,7 +70,7 @@ if __name__ == '__main__':
     
     users = session.query(User).all()
     jobs = session.query(Job).all()
-    statuses = ['applied', 'interviewing', 'rejected', 'hired']
+    statuses = ['applied', 'interviewing', 'rejected', 'offered','accepted']
 
     applications = []
     for _ in range(20):  # Generate 20 applications

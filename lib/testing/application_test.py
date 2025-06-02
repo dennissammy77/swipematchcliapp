@@ -4,7 +4,6 @@ from sqlalchemy.orm import sessionmaker, clear_mappers
 
 from lib.models import User, Company, Application, Job, engine
 from lib.base import Base
-from datetime import datetime
 
 Session = sessionmaker(bind=engine)
 
@@ -59,7 +58,6 @@ def test_create_application(session):
         user_id=user.id,
         job_id=job.id,
         status="applied",
-        date=datetime.utcnow()
     )
     session.add(app)
     session.commit()

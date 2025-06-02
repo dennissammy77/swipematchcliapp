@@ -58,9 +58,10 @@ class User(Base):
 
     @mobile.setter
     def mobile(self, value):
+        print(len(str(value)))
         if not isinstance(int(value),int):
             raise ValueError("Mobile must be a valid number. Use format 759233322")
-        if len(value) < 9:
+        if len(str(value)) < 9:
             raise ValueError("Mobile must be a valid number with at least 10 digits. Use format 759233322")
         self._mobile = int(value)
 
@@ -70,6 +71,7 @@ class User(Base):
 
     @role.setter
     def role(self, value):
+        print(value)
         if value not in ['applicant', 'employer']:
             raise ValueError("Role must be either 'applicant' or 'employer'.")
         self._role = value
